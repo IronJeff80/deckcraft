@@ -272,7 +272,7 @@ fn pick_album_picture(app: &mut SlideApp) -> Option<Value> {
         app.set_status("That picture is larger than 32 MB");
         return None;
     }
-    let name = std::path::Path::new(&path).file_name().and_then(|n| n.to_str()).filter(|s| !s.is_empty()).unwrap_or("picture").to_string();
+    let name = std::path::Path::new(&path).file_name().and_then(std::ffi::OsStr::to_str).filter(|s| !s.is_empty()).unwrap_or("picture").to_string();
     Some(json!({"name": name, "data": deckcraft_engine::cmd::base64_encode(&loaded)}))
 }
 
@@ -2027,7 +2027,7 @@ fn body(app: &mut SlideApp, ui: &mut Ui, d: &mut Dialog) -> bool {
             });
             ui.horizontal(|ui| {
                 if ui.button("+ Row").clicked() {
-                    let n = grid.first().map(|r| r.len()).unwrap_or(2);
+                    let n = grid.first().map(Vec::len).unwrap_or(2);
                     grid.push(vec![String::new(); n]);
                 }
                 if ui.button("+ Series").clicked() {
@@ -2943,7 +2943,7 @@ fn paragraph_return_params(d: &mut Dialog) -> Value {
     let line_value = finite_pt(&d.get("lineValue", "1")).unwrap_or(1.0);
     let before_same = d.get("spaceBefore", "") == d.get("spaceBeforeSeed", "");
     let after_same = d.get("spaceAfter", "") == d.get("spaceAfterSeed", "");
-    let v = json!({
+    json!({
         "align": d.get("align", "left"),
         "indentLeft": before,
         "indentRight": after,
@@ -2957,8 +2957,7 @@ fn paragraph_return_params(d: &mut Dialog) -> Value {
         "lineValue": line_value,
         "tabs": d.params.get("tabs").cloned().unwrap_or_else(|| json!([])),
         "defaultTab": d.params.get("defaultTab").cloned().unwrap_or_else(|| json!(72.0)),
-    });
-    v
+    })
 }
 
 fn line_preset_label(kind: &str, value: &str) -> &'static str {
